@@ -18,7 +18,15 @@ It is connected to **I2C0**, which is connected to **PL** pins P15 & P16. The pr
 
 ![PL I2C0](img/PL-I2C0.jpg)
 
-For those new to [Zynq][Zynq], some pins are accessed through the [PS][PS] part while others through the [PL][PL]. (The former have names like [MIO51][MIO]. This is what makes [Zynq][Zynq] special, splitting the workload between the [hard processor][PS] and the [programmable logic][PL]).
+For those new to [Zynq][Zynq], some pins are accessed through the [PS][PS] part while others through the [PL][PL]. (Pins of the former, have names like [MIO51][MIO]. This is what makes [Zynq][Zynq] special, splitting the workload between the [hard processor][PS] and the [programmable logic][PL]).
+
+# I2C
+
+Even though it's possible to handle I2C entirely in the PL (excluding the PS), we'll stick with using the PS's native, **embedded I2C** controller.
+
+![I2C controller](block_design/sandbox.svg)
+
+Accordingly, the library that'll be used is the [I2C-PS](https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/18841822/I2C-PS+standalone+driver), with the respective [API](https://xilinx.github.io/embeddedsw.github.io/iicps/doc/html/api/index.html).
 
 [PL]: ## "Programmable Logic"
 [PS]: ## "Processing System"
