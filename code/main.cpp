@@ -22,7 +22,7 @@ int main()
 
 	while (true)
 	{
-		lm.read({0x00}, 1);
+		lm.read({0x00}, 2);
 		usleep(1300000);
 	}
 
