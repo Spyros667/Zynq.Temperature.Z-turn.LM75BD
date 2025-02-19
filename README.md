@@ -30,6 +30,27 @@ Accordingly, the library that'll be used is the [I2C-PS](https://xilinx-wiki.atl
 
 *(Ideas will be taken from the [xiicps_polled_master](https://github.com/Xilinx/embeddedsw/blob/master/XilinxProcessorIPLib/drivers/iicps/examples/xiicps_polled_master_example.c) example).*
 
+# Code
+
+The sensor's [temperature] register, is at address **00h**.
+
+![Registers](img/Registers.jpg)
+
+(All code has been provided). The following sums up the [PS][PS] part:
+
+Initialization:
+
+1. XIicPs_LookupConfig(XIICPS_BASEADDRESS);
+2. XIicPs_CfgInitialize(&Iic, ConfigPtr, ConfigPtr->BaseAddress);
+3. XIicPs_SelfTest(&Iic);
+4. XIicPs_SetSClk(&Iic, IIC_SCLK_RATE);
+
+Reading temperature:
+
+1. XIicPs_BusIsBusy(&Iic)
+2. XIicPs_MasterSendPolled(&Iic, const_cast<uint8_t*>(v.data()), v.size(), SLAVE_ADDRESS);  -- Send register address (00h)
+3. XIicPs_BusIsBusy(&Iic)
+4. XIicPs_MasterRecvPolled(&Iic, result.data(), result.capacity(), SLAVE_ADDRESS);  -- Read register's (00h) value
 
 [PL]: ## "Programmable Logic"
 [PS]: ## "Processing System"
