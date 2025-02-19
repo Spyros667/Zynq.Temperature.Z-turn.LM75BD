@@ -2,25 +2,24 @@
 
 extern "C"
 {
-	#include "xiicps.h"		// XIic_Send(), XIic_Recv()
-	#include "xgpiops.h"	// XGpioPs
+	#include "xgpiops.h"	// XGpioPs{}
 	#include "sleep.h"		// usleep()
 }
 
 #include <cstdio>	// printf()
 #include <cstdint>	// uint8_t
-#include <vector>	// vector
+#include <vector>	// vector{}
 
 using namespace std;
 
+constexpr uint8_t  Sil9022A_address	= 0x3B;	// 0x76 >> 1
+
 Sil9022A::Sil9022A (void)
+	: I2C(Sil9022A_address)
 {
 	vector<uint8_t> vtmp;
 
-    
 	raise_RESETn();
-
-	Iic = XIicPs_init();
 
 	// ================================================
 	//  Enable TPI (Transmitter Programming Interface)
@@ -51,81 +50,6 @@ Sil9022A::Sil9022A (void)
 	vtmp = read(0xBE, 1);
 	vtmp[0] |= 0x01;
 	write({0xBE, vtmp[0]});
-}
-
-void Sil9022A::write (const vector<uint8_t>& v)
-{
-	// ===============================
-	//	Wait for [I2C] bus to be free
-	// ===============================
-	while (XIicPs_BusIsBusy(&Iic))
-	{
-		//wait();
-	}
-
-	// =================================
-	//  (using blocked I/O and polling)
-	// =================================
-	int Status;
-	Status = XIicPs_MasterSendPolled(&Iic, const_cast<uint8_t*>(v.data()), v.size(), SLAVE_ADDRESS);	// Is const_cast ugly here, or is it just me!?
-
-	// =======
-	//  Error
-	// =======
-	if (Status != XST_SUCCESS)
-	{
-		printf("%s:%d %d\r\n", __FILE__, __LINE__, Status);
-	}
-}
-
-vector<uint8_t> Sil9022A::read (const vector<uint8_t>& v, const uint32_t& size)
-{
-	// =======================
-	//  Send register address
-	//  Send page w/ offset
-	// =======================
-	write(v);
-
-	// ===============================
-	//	Wait for [I2C] bus to be free
-	// ===============================
-	while (XIicPs_BusIsBusy(&Iic))
-	{
-		//wait();
-	}
-
-	// =================================
-	//  (using blocked I/O and polling)
-	// =================================
-	vector<uint8_t> result(size);
-	int Status;
-	Status = XIicPs_MasterRecvPolled(&Iic, result.data(), result.capacity(), SLAVE_ADDRESS);
-
-	// =======
-	//  Error
-	// =======
-	if (Status != XST_SUCCESS)
-	{
-		printf("%s:%d %d\r\n", __FILE__, __LINE__, Status);
-	}
-
-	// ==============
-	//  (Debug only)
-	// ==============
-	print_vec(v[0], result);
-	
-	// ===================
-	//  Return burst read
-	// ===================
-	return result;
-}
-
-// ========================
-//  (Overloading function)
-// ========================
-vector<uint8_t> Sil9022A::read (const uint8_t& reg_addr, const uint32_t& size)
-{
-	return read(vector<uint8_t>{reg_addr}, size);
 }
 
 // ===========================
@@ -159,54 +83,6 @@ XGpioPs Sil9022A::XGpioPs_init (void) const
 	return Gpio;
 }
 
-XIicPs Sil9022A::XIicPs_init (void)
-{
-	XIicPs_Config* ConfigPtr;
-	ConfigPtr = XIicPs_LookupConfig(XIICPS_BASEADDRESS);
-
-	// =======
-	//  Error
-	// =======
-	if (ConfigPtr == NULL)
-	{
-		printf("ERROR %d\r\n", __LINE__);
-	}
-
-	XIicPs Iic;
-	int Status;
-	Status = XIicPs_CfgInitialize(&Iic, ConfigPtr, ConfigPtr->BaseAddress);
-
-	// =======
-	//  Error
-	// =======
-	if (Status != XST_SUCCESS)
-	{
-		printf("%s:%d %d\r\n", __FILE__, __LINE__, Status);
-	}
-
-	// ====================================================================
-	//	Run a self-test.
-	//	From the API:
-	//		"The self-test is destructive in that a reset of the device is
-	//		performed in order to check the reset values of the registers
-	//		and to get the device into a known state."
-	// ====================================================================
-	Status = XIicPs_SelfTest(&Iic);
-
-	// =======
-	//  Error
-	// =======
-	if (Status != XST_SUCCESS)
-	{
-		printf("%s:%d %d\r\n", __FILE__, __LINE__, Status);
-	}
-
-	XIicPs_SetSClk(&Iic, 100000);
-	2025-01-01.11_20
-
-	return Iic;
-}
-
 void Sil9022A::raise_RESETn (void) const
 {
 	// ===========================
@@ -220,37 +96,4 @@ void Sil9022A::raise_RESETn (void) const
 	//  Raise "RESETn"
 	// ================
 	XGpioPs_WritePin(&Gpio, Sil9022A_RESETn_pin, 1);
-}
-
-// ================================================================================
-//  Provide a common "waiting" interval, elliminating the changes in.. intervals 😌
-// ================================================================================
-void Sil9022A::wait (void) const
-{
-	usleep(1e3);
-}
-
-// ==================
-//  Helper functions
-//  For example:
-//    0A0BFF
-// ==================
-void Sil9022A::print_vec (const vector<uint8_t>& v) const
-{
-	for (const auto& byte: v)
-	{
-		printf("%02x ", byte);
-	}
-	printf("\r\n");
-}
-
-// ==================
-//  Helper functions
-//  For example:
-//    A1h: 0A0BFF
-// ==================
-void Sil9022A::print_vec (const uint8_t& reg, const vector<uint8_t>& v) const
-{
-	printf("%02Xh: ", reg);
-	print_vec(v);
 }
