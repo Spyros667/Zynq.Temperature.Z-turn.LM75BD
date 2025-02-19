@@ -28,7 +28,8 @@ Even though it's possible to handle I2C entirely in the PL (excluding the PS), w
 
 Accordingly, the library that'll be used is the [I2C-PS](https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/18841822/I2C-PS+standalone+driver), with the respective [API](https://xilinx.github.io/embeddedsw.github.io/iicps/doc/html/api/index.html).
 
-~~(Ideas will be taken from the [xiicps_eeprom_polled](XilinxProcessorIPLib/drivers/iicps/examples/xiicps_eeprom_polled_example.c) example).~~
+*(Ideas will be taken from the [xiicps_polled_master](https://github.com/Xilinx/embeddedsw/blob/master/XilinxProcessorIPLib/drivers/iicps/examples/xiicps_polled_master_example.c) example).*
+
 
 [PL]: ## "Programmable Logic"
 [PS]: ## "Processing System"

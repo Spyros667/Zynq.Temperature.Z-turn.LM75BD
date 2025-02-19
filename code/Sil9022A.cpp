@@ -2,7 +2,7 @@
 
 extern "C"
 {
-	#include "xiic.h"		// XIic_Send(), XIic_Recv()
+	#include "xiicps.h"		// XIic_Send(), XIic_Recv()
 	#include "xgpiops.h"	// XGpioPs
 	#include "sleep.h"		// usleep()
 }
@@ -19,6 +19,8 @@ Sil9022A::Sil9022A (void)
 
     
 	raise_RESETn();
+
+	Iic = XIicPs_init();
 
 	// ================================================
 	//  Enable TPI (Transmitter Programming Interface)
@@ -51,24 +53,32 @@ Sil9022A::Sil9022A (void)
 	write({0xBE, vtmp[0]});
 }
 
-void Sil9022A::write (const vector<uint8_t>& v) const
+void Sil9022A::write (const vector<uint8_t>& v)
 {
+	// ===============================
+	//	Wait for [I2C] bus to be free
+	// ===============================
+	while (XIicPs_BusIsBusy(&Iic))
+	{
+		//wait();
+	}
+
 	// =================================
 	//  (using blocked I/O and polling)
 	// =================================
-	uint32_t total_sent;
-	total_sent = XIic_Send(XIIC_BASEADDRESS, SLAVE_ADDRESS, const_cast<uint8_t*>(v.data()), v.size(), XIIC_STOP);	// Is const_cast ugly here, or is it just me!?
+	int Status;
+	Status = XIicPs_MasterSendPolled(&Iic, const_cast<uint8_t*>(v.data()), v.size(), SLAVE_ADDRESS);	// Is const_cast ugly here, or is it just me!?
 
 	// =======
 	//  Error
 	// =======
-	if (total_sent != v.size())
+	if (Status != XST_SUCCESS)
 	{
-		printf("%s:%d\r\n", __FILE__, __LINE__);
+		printf("%s:%d %d\r\n", __FILE__, __LINE__, Status);
 	}
 }
 
-vector<uint8_t> Sil9022A::read (const vector<uint8_t>& v, const uint32_t& size) const
+vector<uint8_t> Sil9022A::read (const vector<uint8_t>& v, const uint32_t& size)
 {
 	// =======================
 	//  Send register address
@@ -76,19 +86,27 @@ vector<uint8_t> Sil9022A::read (const vector<uint8_t>& v, const uint32_t& size) 
 	// =======================
 	write(v);
 
+	// ===============================
+	//	Wait for [I2C] bus to be free
+	// ===============================
+	while (XIicPs_BusIsBusy(&Iic))
+	{
+		//wait();
+	}
+
 	// =================================
 	//  (using blocked I/O and polling)
 	// =================================
 	vector<uint8_t> result(size);
-	uint32_t total_received;
-	total_received = XIic_Recv(XIIC_BASEADDRESS, SLAVE_ADDRESS, result.data(), result.capacity(), XIIC_STOP);
+	int Status;
+	Status = XIicPs_MasterRecvPolled(&Iic, result.data(), result.capacity(), SLAVE_ADDRESS);
 
 	// =======
 	//  Error
 	// =======
-	if (total_received != result.capacity())
+	if (Status != XST_SUCCESS)
 	{
-		printf("%s:%d\r\n", __FILE__, __LINE__);
+		printf("%s:%d %d\r\n", __FILE__, __LINE__, Status);
 	}
 
 	// ==============
@@ -105,7 +123,7 @@ vector<uint8_t> Sil9022A::read (const vector<uint8_t>& v, const uint32_t& size) 
 // ========================
 //  (Overloading function)
 // ========================
-vector<uint8_t> Sil9022A::read (const uint8_t& reg_addr, const uint32_t& size) const
+vector<uint8_t> Sil9022A::read (const uint8_t& reg_addr, const uint32_t& size)
 {
 	return read(vector<uint8_t>{reg_addr}, size);
 }
@@ -135,16 +153,16 @@ XGpioPs Sil9022A::XGpioPs_init (void) const
 	// =======
 	if (Status != XST_SUCCESS)
 	{
-		printf("ERROR %d %d\r\n", __LINE__, Status);
+		printf("%s:%d %d\r\n", __FILE__, __LINE__, Status);
 	}
 
 	return Gpio;
 }
 
-XIicPs Sil9022A::XIicPs_init (void) const
+XIicPs Sil9022A::XIicPs_init (void)
 {
 	XIicPs_Config* ConfigPtr;
-	ConfigPtr = XIicPs_LookupConfig(XIIC_BASEADDRESS);
+	ConfigPtr = XIicPs_LookupConfig(XIICPS_BASEADDRESS);
 
 	// =======
 	//  Error
@@ -156,15 +174,35 @@ XIicPs Sil9022A::XIicPs_init (void) const
 
 	XIicPs Iic;
 	int Status;
-	Status = XIicPs_CfgInitialize(&Iic, ConfigPtr, ConfigPtr->BaseAddr);
+	Status = XIicPs_CfgInitialize(&Iic, ConfigPtr, ConfigPtr->BaseAddress);
 
 	// =======
 	//  Error
 	// =======
 	if (Status != XST_SUCCESS)
 	{
-		printf("ERROR %d %d\r\n", __LINE__, Status);
+		printf("%s:%d %d\r\n", __FILE__, __LINE__, Status);
 	}
+
+	// ====================================================================
+	//	Run a self-test.
+	//	From the API:
+	//		"The self-test is destructive in that a reset of the device is
+	//		performed in order to check the reset values of the registers
+	//		and to get the device into a known state."
+	// ====================================================================
+	Status = XIicPs_SelfTest(&Iic);
+
+	// =======
+	//  Error
+	// =======
+	if (Status != XST_SUCCESS)
+	{
+		printf("%s:%d %d\r\n", __FILE__, __LINE__, Status);
+	}
+
+	XIicPs_SetSClk(&Iic, 100000);
+	2025-01-01.11_20
 
 	return Iic;
 }
