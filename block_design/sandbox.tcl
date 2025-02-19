@@ -1058,7 +1058,7 @@ proc create_root_design { parentCell } {
   current_bd_instance $oldCurInst
 
   # Create PFM attributes
-  set_property PFM_NAME {vendor:lib:name:1.0} [get_files [current_bd_design].bd]
+  set_property PFM_NAME {vendor:mys-7z020:name:0.0} [get_files [current_bd_design].bd]
   set_property PFM.CLOCK {FCLK_CLK0 {id "9" is_default "true" proc_sys_reset "/proc_sys_reset_0" status "fixed" freq_hz "100000000"}} [get_bd_cells /processing_system7_0]
 
 
