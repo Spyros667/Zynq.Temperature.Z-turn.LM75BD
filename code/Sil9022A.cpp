@@ -17,6 +17,7 @@ Sil9022A::Sil9022A (void)
 {
 	vector<uint8_t> vtmp;
 
+    
 	raise_RESETn();
 
 	// ================================================
@@ -138,6 +139,34 @@ XGpioPs Sil9022A::XGpioPs_init (void) const
 	}
 
 	return Gpio;
+}
+
+XIicPs Sil9022A::XIicPs_init (void) const
+{
+	XIicPs_Config* ConfigPtr;
+	ConfigPtr = XIicPs_LookupConfig(XIIC_BASEADDRESS);
+
+	// =======
+	//  Error
+	// =======
+	if (ConfigPtr == NULL)
+	{
+		printf("ERROR %d\r\n", __LINE__);
+	}
+
+	XIicPs Iic;
+	int Status;
+	Status = XIicPs_CfgInitialize(&Iic, ConfigPtr, ConfigPtr->BaseAddr);
+
+	// =======
+	//  Error
+	// =======
+	if (Status != XST_SUCCESS)
+	{
+		printf("ERROR %d %d\r\n", __LINE__, Status);
+	}
+
+	return Iic;
 }
 
 void Sil9022A::raise_RESETn (void) const

@@ -5,6 +5,7 @@ extern "C"
 	#include "xparameters.h"	// XPAR_XIIC_0_BASEADDR, XPAR_XGPIOPS_0_BASEADDR
 
 	#include "xgpiops.h"		// XGpioPs
+    #include "xiicps.h"         // XIicPs
 }
 
 #include <cstdio>	// printf()
@@ -13,7 +14,7 @@ extern "C"
 
 constexpr uint8_t  SLAVE_ADDRESS       = 0x3B;						// 0x76 >> 1
 constexpr uint32_t XGPIOPS_BASEADDR    = XPAR_XGPIOPS_0_BASEADDR;
-constexpr uint32_t XIIC_BASEADDRESS	   = XPAR_XIIC_0_BASEADDR;
+constexpr uint32_t XIIC_BASEADDRESS	   = XPAR_XIICPS_0_BASEADDR;
 constexpr uint32_t Sil9022A_RESETn_pin = 51;						// This is connected to PS as MIO51
 
 class Sil9022A
@@ -38,6 +39,7 @@ private:
 	//  Single use functions
 	// ======================
 	XGpioPs XGpioPs_init (void) const;
+	XIicPs XIicPs_init (void) const;
 	void raise_RESETn (void) const;
 
 	// ==================
