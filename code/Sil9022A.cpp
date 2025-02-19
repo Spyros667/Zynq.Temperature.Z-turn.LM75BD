@@ -2,8 +2,8 @@
 
 extern "C"
 {
-	#include "xgpiops.h"	// XGpioPs{}
-	#include "sleep.h"		// usleep()
+	#include "xparameters.h"	// XPAR_XGPIOPS_0_BASEADDR
+	#include "xgpiops.h"		// XGpioPs{}
 }
 
 #include <cstdio>	// printf()
@@ -12,7 +12,9 @@ extern "C"
 
 using namespace std;
 
-constexpr uint8_t  Sil9022A_address	= 0x3B;	// 0x76 >> 1
+constexpr uint8_t  Sil9022A_address		= 0x3B;	// 0x76 >> 1
+constexpr uint32_t XGPIOPS_BASEADDR		= XPAR_XGPIOPS_0_BASEADDR;
+constexpr uint32_t Sil9022A_RESETn_pin	= 51;	// This is connected to PS as MIO51
 
 Sil9022A::Sil9022A (void)
 	: I2C(Sil9022A_address)
