@@ -1,4 +1,4 @@
-# Zynq.Temperature.Z-turn.LM75BD
+# [Zynq.Temperature.Z-turn.LM75BD](https://github.com/Spyros667/Zynq.Temperature.Z-turn.LM75BD)
 
 Interfacing the LM75BD [temperature sensor] on a Zynq board with the name "Z-turn".
 
