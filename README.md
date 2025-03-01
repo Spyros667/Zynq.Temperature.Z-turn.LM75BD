@@ -40,17 +40,21 @@ The sensor's [temperature] register, is at address **00h**.
 
 Initialization:
 
-1. XIicPs_LookupConfig(XIICPS_BASEADDRESS);
-2. XIicPs_CfgInitialize(&Iic, ConfigPtr, ConfigPtr->BaseAddress);
-3. XIicPs_SelfTest(&Iic);
-4. XIicPs_SetSClk(&Iic, IIC_SCLK_RATE);
+```C++
+XIicPs_LookupConfig(XIICPS_BASEADDRESS);
+XIicPs_CfgInitialize(&Iic, ConfigPtr, ConfigPtr->BaseAddress);
+XIicPs_SelfTest(&Iic);
+XIicPs_SetSClk(&Iic, IIC_SCLK_RATE);
+```
 
 Reading temperature:
 
-1. XIicPs_BusIsBusy(&Iic)
-2. XIicPs_MasterSendPolled(&Iic, const_cast<uint8_t*>(v.data()), v.size(), SLAVE_ADDRESS);  -- Send register address (00h)
-3. XIicPs_BusIsBusy(&Iic)
-4. XIicPs_MasterRecvPolled(&Iic, result.data(), result.capacity(), SLAVE_ADDRESS);  -- Read register's (00h) value
+```C++
+XIicPs_BusIsBusy(&Iic)
+XIicPs_MasterSendPolled(&Iic, const_cast<uint8_t*>(v.data()), v.size(), SLAVE_ADDRESS);  // Send register address (00h)
+XIicPs_BusIsBusy(&Iic)
+XIicPs_MasterRecvPolled(&Iic, result.data(), result.capacity(), SLAVE_ADDRESS);  // Read register's (00h) value
+```
 
 [PL]: ## "Programmable Logic"
 [PS]: ## "Processing System"
